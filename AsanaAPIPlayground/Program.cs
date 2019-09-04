@@ -10,6 +10,7 @@ namespace AsanaAPIPlayground
     {
         private static MenuCollection menuCollection;
         private static bool runApp = true;
+        private static AsanaRequest asanaRequest;
 
         static void Main(string[] args)
         {
@@ -126,7 +127,13 @@ namespace AsanaAPIPlayground
 
         public static void GetSelf()
         {
-            Console.WriteLine("Hi there you");
+
+            asanaRequest = new AsanaRequest();
+            var self = asanaRequest.GetUser("me").Data;
+
+            Console.WriteLine("Here's you:");
+            Console.WriteLine("Name: {0}", self.Data.Name);
+            Console.WriteLine("Email: {0}", self.Data.Email);
         }
     }
 }
