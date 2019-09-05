@@ -35,6 +35,19 @@ namespace AsanaAPIPlayground
 
             return response;
         }
+
+        public IRestResponse<Team> GetTeams(string userGid, string userOrg)
+        {
+            var request = new RestRequest("/users/{userGid}/teams", DataFormat.Json);
+            request.AddParameter("Authorization",
+                string.Format("Bearer " + AccessToken), ParameterType.HttpHeader);
+            request.AddUrlSegment("userGid", userGid);
+            request.AddParameter("organization", userOrg);
+
+            var response = Client.Get<Team>(request);
+
+            return response;
+        }
     }
 
     /// <summary>

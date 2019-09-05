@@ -42,4 +42,17 @@ namespace AsanaAPIPlayground
         public string Name { get; set; }
         public string Resource_type { get; set; }
     }
+
+    public class Team
+    {
+        public List<TeamData> Data { get; set; }
+    }
+
+    public class TeamData
+    {
+        public string Id { get; set; }
+        public string Gid { get; set; }
+        public string Name { get; set; }
+        public string Resource_Type { get; set; }
+    }
 }
