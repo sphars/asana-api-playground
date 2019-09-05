@@ -48,6 +48,50 @@ namespace AsanaAPIPlayground
 
             return response;
         }
+
+        public IRestResponse<Project> GetProject(string projectGid)
+        {
+            var request = new RestRequest("/projects/{projectGid}", DataFormat.Json);
+            request.AddParameter("Authorization",
+                string.Format("Bearer " + AccessToken), ParameterType.HttpHeader);
+            request.AddUrlSegment("projectGid", projectGid);
+
+            var response = Client.Get<Project>(request);
+
+            return response;
+        }
+
+        public IRestResponse<Tasks> GetProjectTasks(string projectGid)
+        {
+            var request = new RestRequest("/projects/{projectGid}/tasks", DataFormat.Json);
+            request.AddParameter("Authorization",
+                string.Format("Bearer " + AccessToken), ParameterType.HttpHeader);
+            request.AddUrlSegment("projectGid", projectGid);
+
+            var response = Client.Get<Tasks>(request);
+
+            return response;
+        }
+
+        public Task PostProjectTask(NewTask taskData, string workspace)
+        {
+            var request = new RestRequest("/tasks", Method.POST, DataFormat.Json);
+
+            request.AddParameter("Authorization",
+                string.Format("Bearer " + AccessToken), ParameterType.HttpHeader);
+
+            request.AddHeader("Content-Type", "application/json");                       
+
+            var content = JsonConvert.SerializeObject(taskData);
+            request.AddParameter("application/json", content, ParameterType.RequestBody);
+            request.AddQueryParameter("workspace", workspace);
+
+            var response = Client.Execute<Task>(request);
+
+            //request.AddObject(task);
+
+            return response.Data;
+        }
     }
 
     /// <summary>

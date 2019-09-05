@@ -77,12 +77,6 @@ namespace AsanaAPIPlayground
                             },
                             new MenuItem()
                             {
-                                Description = "List all organization users",
-                                HasSubmenu = false,
-                                Execute = GetAllUsers
-                            },
-                            new MenuItem()
-                            {
                                 Description = "Return to main menu",
                                 HasSubmenu = true,
                                 SubmenuID = 1
@@ -97,12 +91,9 @@ namespace AsanaAPIPlayground
                         {
                             new MenuItem()
                             {
-                                Description = "Item 1",
-                                HasSubmenu = false,
-                                Execute = () =>
-                                {
-                                    Console.WriteLine("Project 2 information");
-                                }
+                                Description = "Asana API Test Project",
+                                HasSubmenu = true,
+                                SubmenuID = 4
                             },
                             new MenuItem()
                             {
@@ -110,6 +101,44 @@ namespace AsanaAPIPlayground
                                 HasSubmenu = true,
                                 SubmenuID = 2,
                                 Execute = () => { }
+                            }
+                        }
+                    },
+                    new Menu()
+                    {
+                        ID = 4,
+                        Title = "Asana API Test Project",
+                        MenuItems =
+                        {
+                            new MenuItem()
+                            {
+                                Description = "Get Asana API Test Project Data",
+                                HasSubmenu = false,
+                                Execute = () =>
+                                {
+                                    GetProject("1122241621070635");
+                                }
+                            },
+                            new MenuItem()
+                            {
+                                Description = "List tasks",
+                                HasSubmenu = false,
+                                Execute = () =>
+                                {
+                                    GetProjectTasks("1122241621070635");
+                                }
+                            },
+                            new MenuItem()
+                            {
+                                Description = "Add a task",
+                                HasSubmenu = false,
+                                Execute = PostTask
+                            },
+                            new MenuItem()
+                            {
+                                Description = "Return",
+                                HasSubmenu = true,
+                                SubmenuID = 3
                             }
                         }
                     }
@@ -167,6 +196,57 @@ namespace AsanaAPIPlayground
         public static void GetAllUsers()
         {
 
+        }
+
+        public static void GetProject(string projectGid)
+        {
+            asanaRequest = new AsanaRequest();
+            var project = asanaRequest.GetProject(projectGid).Data;
+
+            Console.WriteLine("Here's {0}'s data:", project.Data.Name);
+            Console.Write("Current Status: ");
+            Console.ForegroundColor = project.Data.Current_Status.Color == "green" ? ConsoleColor.Green : ConsoleColor.Red;
+            Console.WriteLine(project.Data.Current_Status.Text);
+            Console.ResetColor();
+        }
+
+        public static void GetProjectTasks(string projectGid)
+        {
+            asanaRequest = new AsanaRequest();
+            var tasks = asanaRequest.GetProjectTasks(projectGid).Data;
+
+            Console.WriteLine("Task list:");
+            foreach (TaskData task in tasks.Data)
+            {
+                Console.WriteLine(" {0}", task.Name);
+            }
+        }
+
+        public static void PostTask()
+        {
+            Console.Write("Enter project GID: ");
+            string projectGid = Console.ReadLine();
+            Console.Write("Enter task name: ");
+            string taskName = Console.ReadLine();
+            Console.Write("Enter due date (leave blank for none) yyyy-mm-dd: ");
+            string dueDate = Console.ReadLine();
+            Console.Write("Enter task notes: ");
+            string notes = Console.ReadLine();
+            //Console.Write("Enter assignee (leave blank for none): ");
+            //string assignee = Console.ReadLine();
+
+            NewTask newTask = new NewTask
+            {
+                Data = new NewTaskData
+                {
+                    Name = taskName,
+                    Due_On = DateTime.Parse(dueDate),
+                    Notes = notes,
+                    Projects = projectGid
+                }                
+            };
+
+            var createdTask = asanaRequest.PostProjectTask(newTask, self.Data.Workspaces[0].Gid);
         }
     }
 }
