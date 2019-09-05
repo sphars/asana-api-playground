@@ -51,9 +51,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AsanaData.cs" />
-    <Compile Include="DataRequest.cs" />
-    <Compile Include="Menu.cs" />
+    <Compile Include="Models\AsanaData.cs" />
+    <Compile Include="Helpers\DataRequest.cs" />
+    <Compile Include="Models\Menu.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
