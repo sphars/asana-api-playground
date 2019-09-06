@@ -238,6 +238,7 @@ namespace AsanaAPIPlayground
         public static void PostTask()
         {
             NewTask newTask = new NewTask();
+            newTask.Data = new NewTaskData();
 
             Console.Write("Enter project GID: ");
             newTask.Data.Projects = Console.ReadLine();
@@ -245,8 +246,18 @@ namespace AsanaAPIPlayground
             Console.Write("Enter task name: ");
             newTask.Data.Name = Console.ReadLine();
 
-            Console.Write("Enter due date (leave blank for none) yyyy-mm-dd: ");
-            newTask.Data.Due_On = DateTime.Parse(Console.ReadLine());
+            Console.Write("Enter due date (leave blank for none): ");
+            string dateInput = Console.ReadLine();
+
+            if (!string.IsNullOrEmpty(dateInput))
+            {
+                DateTime dueDate;
+                while (!DateTime.TryParse(dateInput, out dueDate))
+                {
+                    Console.Write("Invalid date. Try again: ");
+                }
+                newTask.Data.Due_On = dueDate;
+            }
 
             Console.Write("Enter task notes: ");
             newTask.Data.Notes = Console.ReadLine();
