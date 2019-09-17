@@ -130,6 +130,15 @@ namespace AsanaAPIPlayground
                             },
                             new MenuItem()
                             {
+                                Description = "Get task data",
+                                HasSubmenu=false,
+                                Execute = () =>
+                                {
+                                    GetTaskData("1138712392480874");
+                                }
+                            },
+                            new MenuItem()
+                            {
                                 Description = "Add a task",
                                 HasSubmenu = false,
                                 Execute = PostTask
@@ -233,6 +242,13 @@ namespace AsanaAPIPlayground
             {
                 Console.WriteLine(" {0}", task.Name);
             }
+        }
+
+        public static void GetTaskData(string taskGid)
+        {
+            Task taskData = _asanaApi.GetTaskData(taskGid);
+
+            Console.WriteLine(taskData.Data.Name);
         }
 
         public static void PostTask()

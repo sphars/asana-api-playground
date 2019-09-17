@@ -101,6 +101,14 @@ namespace AsanaAPIPlayground
             return Execute<Tasks>(request);
         }
 
+        public Task GetTaskData(string taskGid)
+        {
+            var request = new RestRequest("/tasks/{taskGid}", DataFormat.Json);
+            request.AddUrlSegment("taskGid", taskGid);
+
+            return Execute<Task>(request);
+        }
+
         /// <summary>
         /// Create a new task in a project
         /// </summary>
