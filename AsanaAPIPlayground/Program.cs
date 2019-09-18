@@ -251,14 +251,18 @@ namespace AsanaAPIPlayground
         public static void GetProjectTasks(string projectGid)
         {
             //var tasks = _asana.GetProjectTasks(projectGid);
-            var tasks = _asana.GetTasks(projectGid);
+            var tasks = _asana.GetTasks(projectGid, compact:false);
 
             Console.WriteLine("Task list:");
             foreach (AsanaNet.Models.TaskData task in tasks.data)
             {
                 Console.WriteLine(" {0}", task.name);
                 Console.WriteLine("    {0}", task.notes);
-                Console.WriteLine("    Due: {0}", task.due_on.ToString());
+                if (task.assignee != null)
+                    Console.WriteLine("    Assigned to: {0}", task.assignee.name);
+                if (task.due_on != null)
+                    Console.WriteLine("    Due: {0}", DateTime.Parse(task.due_on.ToString()).ToString("MMMM dd, yyyy"));
+                Console.WriteLine("    Completed: {0}", task.completed);
             }
         }
 
