@@ -275,37 +275,39 @@ namespace AsanaAPIPlayground
 
         public static void PostTask()
         {
-            //NewTask newTask = new NewTask();
-            //newTask.Data = new NewTaskData();
+            NewTask newTask = new NewTask
+            {
+                data = new NewTaskData()
+            };
 
-            //Console.Write("Enter project GID: ");
-            //newTask.Data.Projects = Console.ReadLine();
+            Console.Write("Enter project GID: ");
+            newTask.data.projects = Console.ReadLine();
 
-            //Console.Write("Enter task name: ");
-            //newTask.Data.Name = Console.ReadLine();
+            Console.Write("Enter task name: ");
+            newTask.data.name = Console.ReadLine();
 
-            //Console.Write("Enter due date (leave blank for none): ");
-            //string dateInput = Console.ReadLine();
+            Console.Write("Enter due date (leave blank for none): ");
+            string dateInput = Console.ReadLine();
 
-            //if (!string.IsNullOrEmpty(dateInput))
-            //{
-            //    DateTime dueDate;
-            //    while (!DateTime.TryParse(dateInput, out dueDate))
-            //    {
-            //        Console.Write("Invalid date. Try again: ");
-            //    }
-            //    newTask.Data.Due_On = dueDate;
-            //}
+            if (!string.IsNullOrEmpty(dateInput))
+            {
+                DateTime dueDate;
+                while (!DateTime.TryParse(dateInput, out dueDate))
+                {
+                    Console.Write("Invalid date. Try again: ");
+                }
+                newTask.data.due_on = dueDate;
+            }
 
-            //Console.Write("Enter task notes: ");
-            //newTask.Data.Notes = Console.ReadLine();
+            Console.Write("Enter task notes: ");
+            newTask.data.notes = Console.ReadLine();
 
             ////Console.Write("Enter assignee (leave blank for none): ");
             ////string assignee = Console.ReadLine();
 
-            //_asana = new AsanaApi();
-            //var createdTask = _asana.PostProjectTask(newTask, self.Data.Workspaces[0].Gid);
+            var createdTask = _asana.PostProjectTask(newTask);
 
+            Console.WriteLine(createdTask.data.name);
         }
     }
 }
