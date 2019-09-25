@@ -11,10 +11,12 @@ namespace AsanaAPIPlayground
 {
     class Program
     {
+        private const string _APITestProjectGid = "1122241621070635";
         private static MenuCollection menuCollection;
         public static Asana _asana;
         private static string _accessToken;
         private static User self;
+
 
         static void Main(string[] args)
         {
@@ -123,7 +125,7 @@ namespace AsanaAPIPlayground
                                 HasSubmenu = false,
                                 Execute = () =>
                                 {
-                                    GetProject("1122241621070635");
+                                    GetProject(_APITestProjectGid);
                                 }
                             },
                             new MenuItem()
@@ -132,7 +134,7 @@ namespace AsanaAPIPlayground
                                 HasSubmenu = false,
                                 Execute = () =>
                                 {
-                                    GetProjectTasks("1122241621070635");
+                                    GetProjectTasks(_APITestProjectGid);
                                 }
                             },
                             new MenuItem()
@@ -149,6 +151,15 @@ namespace AsanaAPIPlayground
                                 Description = "Add a task",
                                 HasSubmenu = false,
                                 Execute = PostTask
+                            },
+                            new MenuItem()
+                            {
+                                Description = "Batch add tasks",
+                                HasSubmenu = false,
+                                Execute = () =>
+                                {
+                                    BatchAddTasks(_APITestProjectGid);
+                                }
                             },
                             new MenuItem()
                             {
@@ -275,13 +286,20 @@ namespace AsanaAPIPlayground
 
         public static void PostTask()
         {
+            var createdTask = _asana.PostProjectTask(CreateNewTask(_APITestProjectGid));
+
+            Console.WriteLine(createdTask.data.name);
+        }
+
+        public static NewTask CreateNewTask(string projectGid)
+        {
             NewTask newTask = new NewTask
             {
                 data = new NewTaskData()
             };
 
-            Console.Write("Enter project GID: ");
-            newTask.data.projects = Console.ReadLine();
+            //Console.Write("Enter project GID: ");
+            newTask.data.projects = projectGid;
 
             Console.Write("Enter task name: ");
             newTask.data.name = Console.ReadLine();
@@ -302,12 +320,57 @@ namespace AsanaAPIPlayground
             Console.Write("Enter task notes: ");
             newTask.data.notes = Console.ReadLine();
 
-            ////Console.Write("Enter assignee (leave blank for none): ");
-            ////string assignee = Console.ReadLine();
+            Console.Write("Enter assignee gid (leave blank for none, 'me' for self): ");
+            string assignee = Console.ReadLine();
+            if(!string.IsNullOrEmpty(assignee))
+            {
+                newTask.data.assignee = assignee;
+            }
 
-            var createdTask = _asana.PostProjectTask(newTask);
+            return newTask;
+        }
 
-            Console.WriteLine(createdTask.data.name);
+        public static void BatchAddTasks(string projectGid)
+        {
+            var batchData = new Batch
+            {
+                data = new BatchData
+                {
+                    actions = new List<AsanaActionTask>()
+                }
+            };
+
+            Console.WriteLine("Create a new task");
+            Console.WriteLine("Enter 'n' to exit");
+
+            while (true)
+            {
+                Console.WriteLine("----");
+                var newTask = CreateNewTask(projectGid);
+
+                batchData.data.actions.Add(new AsanaActionTask
+                {
+                    relative_path = "/tasks",
+                    method = "post",
+                    data = newTask.data
+                });
+
+                Console.Write("Another? y/n: ");
+                var input = Console.ReadLine();
+                if (input.ToLower() == "y")
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            var batchResponse = _asana.PostProjectTasksBatch(batchData);
+
+            Console.WriteLine();
+
         }
     }
 }
