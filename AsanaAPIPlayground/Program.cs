@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AsanaNet;
-using AsanaNet.Models;
+using AsanaNet.Objects;
 
 namespace AsanaAPIPlayground
 {
@@ -15,7 +15,7 @@ namespace AsanaAPIPlayground
         private static MenuCollection menuCollection;
         public static Asana _asana;
         private static string _accessToken;
-        private static User self;
+        private static AsanaUser self;
 
 
         static void Main(string[] args)
@@ -192,11 +192,11 @@ namespace AsanaAPIPlayground
             }
         }
 
-        public static void PrintUser(User user)
+        public static void PrintUser(AsanaNet.Objects.AsanaUser user)
         {
-            Console.WriteLine("Here's {0}'s information:", user.data.name);
-            Console.WriteLine("Name: {0}", self.data.name);
-            Console.WriteLine("Email: {0}", self.data.email);
+            Console.WriteLine("Here's {0}'s information:", user.Name);
+            Console.WriteLine("Name: {0}", self.Name);
+            Console.WriteLine("Email: {0}", self.Email);
         }
 
         public static void GetUser(string userGid)
@@ -226,13 +226,13 @@ namespace AsanaAPIPlayground
         {
             var project = _asana.GetProject(projectGid);
 
-            Console.WriteLine("Here's {0}'s data:", project.data.name);
-            Console.WriteLine("Description: {0}", project.data.notes);
+            Console.WriteLine("Here's {0}'s data:", project.Name);
+            Console.WriteLine("Description: {0}", project.Notes);
 
-            if (project.data.current_status != null)
+            if (project.CurrentStatus != null)
             {
                 Console.Write("Current Status: ");
-                switch (project.data.current_status.color)
+                switch (project.CurrentStatus.Color)
                 {
                     case "green":
                         Console.ForegroundColor = ConsoleColor.Green;
@@ -247,129 +247,129 @@ namespace AsanaAPIPlayground
                         Console.ResetColor();
                         break;
                 }
-                Console.WriteLine(project.data.current_status.text);
+                Console.WriteLine(project.CurrentStatus.Text);
                 Console.ResetColor();
             }
 
             Console.WriteLine("Project members:");
-            foreach(UserData user in project.data.members.OrderBy(o => o.name).ToList())
+            foreach (AsanaUser user in project.Members.OrderBy(o => o.Name).ToList())
             {
-                Console.WriteLine("  {0}", user.name);
+                Console.WriteLine("  {0}", user.Name);
             }
-            
+
         }
 
         public static void GetProjectTasks(string projectGid)
         {
             //var tasks = _asana.GetProjectTasks(projectGid);
-            var tasks = _asana.GetTasks(projectGid, compact:false);
+            var tasks = _asana.GetTasks(projectGid, compact: false);
 
             Console.WriteLine("Task list:");
-            foreach (AsanaNet.Models.TaskData task in tasks.data)
+            foreach (AsanaTask task in tasks)
             {
-                Console.WriteLine(" {0}", task.name);
-                Console.WriteLine("    {0}", task.notes);
-                if (task.assignee != null)
-                    Console.WriteLine("    Assigned to: {0}", task.assignee.name);
-                if (task.due_on != null)
-                    Console.WriteLine("    Due: {0}", DateTime.Parse(task.due_on.ToString()).ToString("MMMM dd, yyyy"));
-                Console.WriteLine("    Completed: {0}", task.completed);
+                Console.WriteLine(" {0}", task.Name);
+                Console.WriteLine("    {0}", task.Notes);
+                if (task.Assignee != null)
+                    Console.WriteLine("    Assigned to: {0}", task.Assignee.Name);
+                if (task.DueOn != null)
+                    Console.WriteLine("    Due: {0}", DateTime.Parse(task.DueOn.ToString()).ToString("MMMM dd, yyyy"));
+                Console.WriteLine("    Completed: {0}", task.Completed);
             }
         }
 
         public static void GetTaskData(string taskGid)
         {
-            Task2 taskData = _asana.GetTaskData(taskGid);
+            AsanaTask task = _asana.GetTaskData(taskGid);
 
-            Console.WriteLine(taskData.data.name);
+            Console.WriteLine(task.Name);
         }
 
         public static void PostTask()
         {
-            var createdTask = _asana.PostProjectTask(CreateNewTask(_APITestProjectGid));
+            //var createdTask = _asana.PostProjectTask(CreateNewTask(_APITestProjectGid));
 
-            Console.WriteLine(createdTask.data.name);
+            //Console.WriteLine(createdTask.data.name);
         }
 
-        public static NewTask CreateNewTask(string projectGid)
-        {
-            NewTask newTask = new NewTask
-            {
-                data = new NewTaskData()
-            };
+        //public static NewTask CreateNewTask(string projectGid)
+        //{
+            //NewTask newTask = new NewTask
+            //{
+            //    data = new NewTaskData()
+            //};
 
-            //Console.Write("Enter project GID: ");
-            newTask.data.projects = projectGid;
+            ////Console.Write("Enter project GID: ");
+            //newTask.data.projects = projectGid;
 
-            Console.Write("Enter task name: ");
-            newTask.data.name = Console.ReadLine();
+            //Console.Write("Enter task name: ");
+            //newTask.data.name = Console.ReadLine();
 
-            Console.Write("Enter due date (leave blank for none): ");
-            string dateInput = Console.ReadLine();
+            //Console.Write("Enter due date (leave blank for none): ");
+            //string dateInput = Console.ReadLine();
 
-            if (!string.IsNullOrEmpty(dateInput))
-            {
-                DateTime dueDate;
-                while (!DateTime.TryParse(dateInput, out dueDate))
-                {
-                    Console.Write("Invalid date. Try again: ");
-                }
-                newTask.data.due_on = dueDate;
-            }
+            //if (!string.IsNullOrEmpty(dateInput))
+            //{
+            //    DateTime dueDate;
+            //    while (!DateTime.TryParse(dateInput, out dueDate))
+            //    {
+            //        Console.Write("Invalid date. Try again: ");
+            //    }
+            //    newTask.data.due_on = dueDate;
+            //}
 
-            Console.Write("Enter task notes: ");
-            newTask.data.notes = Console.ReadLine();
+            //Console.Write("Enter task notes: ");
+            //newTask.data.notes = Console.ReadLine();
 
-            Console.Write("Enter assignee gid (leave blank for none, 'me' for self): ");
-            string assignee = Console.ReadLine();
-            if(!string.IsNullOrEmpty(assignee))
-            {
-                newTask.data.assignee = assignee;
-            }
+            //Console.Write("Enter assignee gid (leave blank for none, 'me' for self): ");
+            //string assignee = Console.ReadLine();
+            //if(!string.IsNullOrEmpty(assignee))
+            //{
+            //    newTask.data.assignee = assignee;
+            //}
 
-            return newTask;
-        }
+            //return newTask;
+        //}
 
         public static void BatchAddTasks(string projectGid)
         {
-            var batchData = new Batch
-            {
-                data = new BatchData
-                {
-                    actions = new List<AsanaActionTask>()
-                }
-            };
+            //var batchData = new Batch
+            //{
+            //    data = new BatchData
+            //    {
+            //        actions = new List<AsanaActionTask>()
+            //    }
+            //};
 
-            Console.WriteLine("Create a new task");
-            Console.WriteLine("Enter 'n' to exit");
+            //Console.WriteLine("Create a new task");
+            //Console.WriteLine("Enter 'n' to exit");
 
-            while (true)
-            {
-                Console.WriteLine("----");
-                var newTask = CreateNewTask(projectGid);
+            //while (true)
+            //{
+            //    Console.WriteLine("----");
+            //    var newTask = CreateNewTask(projectGid);
 
-                batchData.data.actions.Add(new AsanaActionTask
-                {
-                    relative_path = "/tasks",
-                    method = "post",
-                    data = newTask.data
-                });
+            //    batchData.data.actions.Add(new AsanaActionTask
+            //    {
+            //        relative_path = "/tasks",
+            //        method = "post",
+            //        data = newTask.data
+            //    });
 
-                Console.Write("Another? y/n: ");
-                var input = Console.ReadLine();
-                if (input.ToLower() == "y")
-                {
-                    continue;
-                }
-                else
-                {
-                    break;
-                }
-            }
+            //    Console.Write("Another? y/n: ");
+            //    var input = Console.ReadLine();
+            //    if (input.ToLower() == "y")
+            //    {
+            //        continue;
+            //    }
+            //    else
+            //    {
+            //        break;
+            //    }
+            //}
 
-            var batchResponse = _asana.PostProjectTasksBatch(batchData);
+            //var batchResponse = _asana.PostProjectTasksBatch(batchData);
 
-            Console.WriteLine();
+            //Console.WriteLine();
 
         }
     }
