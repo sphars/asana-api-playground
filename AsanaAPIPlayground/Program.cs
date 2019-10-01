@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AsanaNet;
 using AsanaNet.Objects;
+using AsanaNet.Objects.New;
 
 namespace AsanaAPIPlayground
 {
@@ -265,7 +266,7 @@ namespace AsanaAPIPlayground
             var tasks = _asana.GetTasks(projectGid, compact: false);
 
             Console.WriteLine("Task list:");
-            foreach (AsanaTask task in tasks)
+            foreach (AsanaNet.Objects.AsanaTask task in tasks)
             {
                 Console.WriteLine(" {0}", task.Name);
                 Console.WriteLine("    {0}", task.Notes);
@@ -286,49 +287,59 @@ namespace AsanaAPIPlayground
 
         public static void PostTask()
         {
-            //var createdTask = _asana.PostProjectTask(CreateNewTask(_APITestProjectGid));
+            var createdTask = _asana.PostProjectTask(CreateNewTask(), _APITestProjectGid);
 
-            //Console.WriteLine(createdTask.data.name);
+            Console.WriteLine(createdTask.Name);
         }
 
-        //public static NewTask CreateNewTask(string projectGid)
-        //{
-            //NewTask newTask = new NewTask
-            //{
-            //    data = new NewTaskData()
-            //};
+        public static NewAsanaTask CreateNewTask()
+        {
+            var newTask = new NewAsanaTask();
 
-            ////Console.Write("Enter project GID: ");
-            //newTask.data.projects = projectGid;
+            Console.Write("Enter task name: ");
+            newTask.Name = Console.ReadLine();
 
-            //Console.Write("Enter task name: ");
-            //newTask.data.name = Console.ReadLine();
+            Console.Write("Enter due date (leave blank for none): ");
+            string dateInput = Console.ReadLine();
 
-            //Console.Write("Enter due date (leave blank for none): ");
-            //string dateInput = Console.ReadLine();
+            if (!string.IsNullOrEmpty(dateInput))
+            {
+                DateTime dueDate;
+                while (!DateTime.TryParse(dateInput, out dueDate))
+                {
+                    Console.Write("Invalid date. Try again: ");
+                }
+                newTask.DueOn = dueDate;
+            }
 
-            //if (!string.IsNullOrEmpty(dateInput))
-            //{
-            //    DateTime dueDate;
-            //    while (!DateTime.TryParse(dateInput, out dueDate))
-            //    {
-            //        Console.Write("Invalid date. Try again: ");
-            //    }
-            //    newTask.data.due_on = dueDate;
-            //}
+            Console.Write("Enter task notes: ");
+            newTask.Notes = Console.ReadLine();
 
-            //Console.Write("Enter task notes: ");
-            //newTask.data.notes = Console.ReadLine();
+            Console.Write("Enter assignee gid (leave blank for none, 'me' for self): ");
+            string assignee = Console.ReadLine();
+            if (!string.IsNullOrEmpty(assignee))
+            {
+                newTask.Assignee = assignee;
+            }
 
-            //Console.Write("Enter assignee gid (leave blank for none, 'me' for self): ");
-            //string assignee = Console.ReadLine();
-            //if(!string.IsNullOrEmpty(assignee))
-            //{
-            //    newTask.data.assignee = assignee;
-            //}
+            newTask.Followers = new List<string>();
+            while (true)
+            {
+                Console.Write("Add follower email (blank to stop): ");
+                var input = Console.ReadLine();
+                if (!string.IsNullOrEmpty(input))
+                {
+                    newTask.Followers.Add(input);
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+            }
 
-            //return newTask;
-        //}
+            return newTask;
+        }
 
         public static void BatchAddTasks(string projectGid)
         {
