@@ -294,7 +294,10 @@ namespace AsanaAPIPlayground
 
         public static NewAsanaTask CreateNewTask()
         {
-            var newTask = new NewAsanaTask();
+            var newTask = new NewAsanaTask
+            {
+                Followers = new List<string>()
+            };
 
             Console.Write("Enter task name: ");
             newTask.Name = Console.ReadLine();
@@ -322,7 +325,6 @@ namespace AsanaAPIPlayground
                 newTask.Assignee = assignee;
             }
 
-            newTask.Followers = new List<string>();
             while (true)
             {
                 Console.Write("Add follower email (blank to stop): ");
