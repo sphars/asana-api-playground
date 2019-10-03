@@ -13,6 +13,7 @@ namespace AsanaAPIPlayground
     class Program
     {
         private const string _APITestProjectGid = "1122241621070635";
+        private const string _APITestCentralTeamGid = "1140907983254353";
         private static MenuCollection menuCollection;
         public static Asana _asana;
         private static string _accessToken;
@@ -104,6 +105,12 @@ namespace AsanaAPIPlayground
                                 Description = "Asana API Test Project",
                                 HasSubmenu = true,
                                 SubmenuID = 4
+                            },
+                            new MenuItem()
+                            {
+                                Description = "Add new project",
+                                HasSubmenu = false,
+                                Execute = PostProject
                             },
                             new MenuItem()
                             {
@@ -292,6 +299,13 @@ namespace AsanaAPIPlayground
             Console.WriteLine(createdTask.Name);
         }
 
+        public static void PostProject()
+        {
+            var createdProject = _asana.PostProject(CreateNewProject(), _APITestCentralTeamGid);
+
+            Console.WriteLine(createdProject.Name);
+        }
+
         public static NewAsanaTask CreateNewTask()
         {
             var newTask = new NewAsanaTask
@@ -342,6 +356,25 @@ namespace AsanaAPIPlayground
 
             return newTask;
         }
+
+        public static NewAsanaProject CreateNewProject()
+        {
+            var newProject = new NewAsanaProject();
+
+            Console.Write("Enter task name: ");
+            newProject.Name = Console.ReadLine();
+
+
+            Console.Write("Enter task notes: ");
+            newProject.Notes = Console.ReadLine();
+
+
+            Console.Write("Enter a color: ");
+            newProject.Color = Console.ReadLine();
+
+            return newProject;
+        }
+
 
         public static void BatchAddTasks(string projectGid)
         {
