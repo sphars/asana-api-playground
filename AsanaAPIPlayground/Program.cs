@@ -303,7 +303,26 @@ namespace AsanaAPIPlayground
         {
             var createdProject = _asana.PostProject(CreateNewProject(), _APITestCentralTeamGid);
 
-            Console.WriteLine(createdProject.Name);
+            List<string> followers = new List<string>();
+
+            while (true)
+            {
+                Console.Write("Add follower email (blank to stop): ");
+                var input = Console.ReadLine();
+                if (!string.IsNullOrEmpty(input))
+                {
+                    followers.Add(input);
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            var updatedProject = _asana.AddMembersToProject(createdProject.GID, followers);
+
+            Console.WriteLine(updatedProject.Name);
         }
 
         public static NewAsanaTask CreateNewTask()
@@ -361,16 +380,16 @@ namespace AsanaAPIPlayground
         {
             var newProject = new NewAsanaProject();
 
-            Console.Write("Enter task name: ");
+            Console.Write("Enter project name: ");
             newProject.Name = Console.ReadLine();
 
 
-            Console.Write("Enter task notes: ");
+            Console.Write("Enter project notes: ");
             newProject.Notes = Console.ReadLine();
 
 
-            Console.Write("Enter a color: ");
-            newProject.Color = Console.ReadLine();
+            //Console.Write("Enter a color: ");
+            //newProject.Color = Console.ReadLine();
 
             return newProject;
         }
