@@ -1,16 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AsanaNet;
+using AsanaNet.Objects;
+using AsanaNet.Objects.New;
 
 namespace AsanaAPIPlayground
 {
     class Program
     {
+        private const string _APITestProjectGid = "1122241621070635";
+        private const string _APITestCentralTeamGid = "1140907983254353";
         private static MenuCollection menuCollection;
-        private static AsanaApi _asanaApi;
-        private static User self;
+        public static Asana _asana;
+        private static string _accessToken;
+        private static AsanaUser self;
+
 
         static void Main(string[] args)
         {
@@ -18,6 +26,9 @@ namespace AsanaAPIPlayground
 
             Console.WriteLine("Welcome to the Asana API.");
             Console.WriteLine("-------------------------");
+
+            _accessToken = ConfigurationManager.AppSettings.Get("AsanaToken");
+            _asana = new Asana(_accessToken);
 
             GetSelf();
 
@@ -97,6 +108,12 @@ namespace AsanaAPIPlayground
                             },
                             new MenuItem()
                             {
+                                Description = "Add new project",
+                                HasSubmenu = false,
+                                Execute = PostProject
+                            },
+                            new MenuItem()
+                            {
                                 Description = "Return",
                                 HasSubmenu = true,
                                 SubmenuID = 2,
@@ -116,7 +133,7 @@ namespace AsanaAPIPlayground
                                 HasSubmenu = false,
                                 Execute = () =>
                                 {
-                                    GetProject("1122241621070635");
+                                    GetProject(_APITestProjectGid);
                                 }
                             },
                             new MenuItem()
@@ -125,7 +142,7 @@ namespace AsanaAPIPlayground
                                 HasSubmenu = false,
                                 Execute = () =>
                                 {
-                                    GetProjectTasks("1122241621070635");
+                                    GetProjectTasks(_APITestProjectGid);
                                 }
                             },
                             new MenuItem()
@@ -134,7 +151,7 @@ namespace AsanaAPIPlayground
                                 HasSubmenu=false,
                                 Execute = () =>
                                 {
-                                    GetTaskData("1138712392480874");
+                                    GetTaskData("1132422945108960");
                                 }
                             },
                             new MenuItem()
@@ -142,6 +159,15 @@ namespace AsanaAPIPlayground
                                 Description = "Add a task",
                                 HasSubmenu = false,
                                 Execute = PostTask
+                            },
+                            new MenuItem()
+                            {
+                                Description = "Batch add tasks",
+                                HasSubmenu = false,
+                                Execute = () =>
+                                {
+                                    BatchAddTasks(_APITestProjectGid);
+                                }
                             },
                             new MenuItem()
                             {
@@ -165,8 +191,8 @@ namespace AsanaAPIPlayground
         {
             if (self == null)
             {
-                _asanaApi = new AsanaApi();
-                self = _asanaApi.GetUser("me");
+                //_asana = new Asana();
+                self = _asana.GetUser("me");
             }
             else
             {
@@ -174,31 +200,29 @@ namespace AsanaAPIPlayground
             }
         }
 
-        public static void PrintUser(User user)
+        public static void PrintUser(AsanaNet.Objects.AsanaUser user)
         {
-            Console.WriteLine("Here's {0}'s information:", user.Data.Name);
-            Console.WriteLine("Name: {0}", self.Data.Name);
-            Console.WriteLine("Email: {0}", self.Data.Email);
+            Console.WriteLine("Here's {0}'s information:", user.Name);
+            Console.WriteLine("Name: {0}", self.Name);
+            Console.WriteLine("Email: {0}", self.Email);
         }
 
         public static void GetUser(string userGid)
         {
-            _asanaApi = new AsanaApi();
-            var user = _asanaApi.GetUser(userGid);
+            var user = _asana.GetUser(userGid);
 
             PrintUser(user);
         }
 
         public static void GetTeams()
         {
-            _asanaApi = new AsanaApi();
-            var teams = _asanaApi.GetTeams(self.Data.Gid, self.Data.Workspaces[0].Gid);
+            //var teams = _asana.GetTeams(self.Data.Gid, self.Data.Workspaces[0].Gid);
 
-            Console.WriteLine("Here's {0}'s teams:", self.Data.Name);
-            foreach (TeamData team in teams.Data)
-            {
-                Console.WriteLine("{0}", team.Name);
-            }
+            //Console.WriteLine("Here's {0}'s teams:", self.Data.Name);
+            //foreach (TeamData team in teams.Data)
+            //{
+            //    Console.WriteLine("{0}", team.Name);
+            //}
         }
 
         public static void GetAllUsers()
@@ -208,59 +232,91 @@ namespace AsanaAPIPlayground
 
         public static void GetProject(string projectGid)
         {
-            _asanaApi = new AsanaApi();
-            var project = _asanaApi.GetProject(projectGid);
+            var project = _asana.GetProject(projectGid);
 
-            Console.WriteLine("Here's {0}'s data:", project.Data.Name);
-            Console.Write("Current Status: ");
-            switch (project.Data.Current_Status.Color)
+            Console.WriteLine("Here's {0}'s data:", project.Name);
+            Console.WriteLine("Description: {0}", project.Notes);
+
+            if (project.CurrentStatus != null)
             {
-                case "green":
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    break;
-                case "yellow":
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    break;
-                case "red":
-                    Console.ForegroundColor = ConsoleColor.DarkRed;
-                    break;
-                default:
-                    Console.ResetColor();
-                    break;
+                Console.Write("Current Status: ");
+                switch (project.CurrentStatus.Color)
+                {
+                    case "green":
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        break;
+                    case "yellow":
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        break;
+                    case "red":
+                        Console.ForegroundColor = ConsoleColor.DarkRed;
+                        break;
+                    default:
+                        Console.ResetColor();
+                        break;
+                }
+                Console.WriteLine(project.CurrentStatus.Text);
+                Console.ResetColor();
             }
-            Console.WriteLine(project.Data.Current_Status.Text);
-            Console.ResetColor();
+
+            Console.WriteLine("Project members:");
+            foreach (AsanaUser user in project.Members.OrderBy(o => o.Name).ToList())
+            {
+                Console.WriteLine("  {0}", user.Name);
+            }
+
         }
 
         public static void GetProjectTasks(string projectGid)
         {
-            _asanaApi = new AsanaApi();
-            var tasks = _asanaApi.GetProjectTasks(projectGid);
+            //var tasks = _asana.GetProjectTasks(projectGid);
+            var tasks = _asana.GetTasks(projectGid, compact: false);
 
             Console.WriteLine("Task list:");
-            foreach (TaskData task in tasks.Data)
+            foreach (AsanaNet.Objects.AsanaTask task in tasks)
             {
                 Console.WriteLine(" {0}", task.Name);
+                Console.WriteLine("    {0}", task.Notes);
+                if (task.Assignee != null)
+                    Console.WriteLine("    Assigned to: {0}", task.Assignee.Name);
+                if (task.DueOn != null)
+                    Console.WriteLine("    Due: {0}", DateTime.Parse(task.DueOn.ToString()).ToString("MMMM dd, yyyy"));
+                Console.WriteLine("    Completed: {0}", task.Completed);
             }
         }
 
         public static void GetTaskData(string taskGid)
         {
-            Task taskData = _asanaApi.GetTaskData(taskGid);
+            AsanaTask task = _asana.GetTaskData(taskGid);
 
-            Console.WriteLine(taskData.Data.Name);
+            Console.WriteLine(task.Name);
         }
 
         public static void PostTask()
         {
-            NewTask newTask = new NewTask();
-            newTask.Data = new NewTaskData();
+            var createdTask = _asana.PostProjectTask(CreateNewTask(), _APITestProjectGid);
 
-            Console.Write("Enter project GID: ");
-            newTask.Data.Projects = Console.ReadLine();
+            Console.WriteLine(createdTask.Name);
+        }
+
+        public static void PostProject()
+        {
+            var createdProject = _asana.PostProject(CreateNewProject(), _APITestCentralTeamGid);
+
+            //var updatedProject = _asana.AddMembersToProject(createdProject.GID, followers);
+
+            Console.WriteLine(createdProject.Name);
+        }
+
+        public static NewAsanaTask CreateNewTask()
+        {
+            var newTask = new NewAsanaTask
+            {
+                Followers = new List<string>()
+            };
 
             Console.Write("Enter task name: ");
-            newTask.Data.Name = Console.ReadLine();
+            newTask.Name = Console.ReadLine();
 
             Console.Write("Enter due date (leave blank for none): ");
             string dateInput = Console.ReadLine();
@@ -272,17 +328,114 @@ namespace AsanaAPIPlayground
                 {
                     Console.Write("Invalid date. Try again: ");
                 }
-                newTask.Data.Due_On = dueDate;
+                newTask.DueOn = dueDate;
             }
 
             Console.Write("Enter task notes: ");
-            newTask.Data.Notes = Console.ReadLine();
+            newTask.Notes = Console.ReadLine();
 
-            //Console.Write("Enter assignee (leave blank for none): ");
-            //string assignee = Console.ReadLine();
+            Console.Write("Enter assignee gid (leave blank for none, 'me' for self): ");
+            string assignee = Console.ReadLine();
+            if (!string.IsNullOrEmpty(assignee))
+            {
+                newTask.Assignee = assignee;
+            }
 
-            _asanaApi = new AsanaApi();
-            var createdTask = _asanaApi.PostProjectTask(newTask, self.Data.Workspaces[0].Gid);
+            while (true)
+            {
+                Console.Write("Add follower email (blank to stop): ");
+                var input = Console.ReadLine();
+                if (!string.IsNullOrEmpty(input))
+                {
+                    newTask.Followers.Add(input);
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return newTask;
+        }
+
+        public static NewAsanaProject CreateNewProject()
+        {
+            var newProject = new NewAsanaProject();
+
+            Console.Write("Enter project name: ");
+            newProject.Name = Console.ReadLine();
+
+
+            Console.Write("Enter project notes: ");
+            newProject.Notes = Console.ReadLine();
+
+
+            //Console.Write("Enter a color: ");
+            //newProject.Color = Console.ReadLine();
+
+            while (true)
+            {
+                Console.Write("Add follower email (blank to stop): ");
+                var input = Console.ReadLine();
+                if (!string.IsNullOrEmpty(input))
+                {
+                    newProject.Followers.Add(input);
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            if (newProject.Followers.Count > 0)
+                newProject.Public = true;
+
+            return newProject;
+        }
+
+
+        public static void BatchAddTasks(string projectGid)
+        {
+            //var batchData = new Batch
+            //{
+            //    data = new BatchData
+            //    {
+            //        actions = new List<AsanaActionTask>()
+            //    }
+            //};
+
+            //Console.WriteLine("Create a new task");
+            //Console.WriteLine("Enter 'n' to exit");
+
+            //while (true)
+            //{
+            //    Console.WriteLine("----");
+            //    var newTask = CreateNewTask(projectGid);
+
+            //    batchData.data.actions.Add(new AsanaActionTask
+            //    {
+            //        relative_path = "/tasks",
+            //        method = "post",
+            //        data = newTask.data
+            //    });
+
+            //    Console.Write("Another? y/n: ");
+            //    var input = Console.ReadLine();
+            //    if (input.ToLower() == "y")
+            //    {
+            //        continue;
+            //    }
+            //    else
+            //    {
+            //        break;
+            //    }
+            //}
+
+            //var batchResponse = _asana.PostProjectTasksBatch(batchData);
+
+            //Console.WriteLine();
 
         }
     }
